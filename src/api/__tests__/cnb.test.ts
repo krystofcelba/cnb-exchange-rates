@@ -32,14 +32,16 @@ Iceland|krona|100|ISK|16.211
             amount: 1,
             code: 'AUD',
             rate: 13.680,
+            normalizedRate: 13.680,
         });
 
         expect(rates['HUF']).toEqual({
             country: 'Hungary',
             currency: 'forint',
-            amount: 1,
+            amount: 100,
             code: 'HUF',
-            rate: 0.06324,
+            rate: 6.324,
+            normalizedRate: 0.06324,
         });
     });
 

@@ -6,6 +6,7 @@ export interface ExchangeRate {
     amount: number;
     code: string;
     rate: number;
+    normalizedRate: number;
 }
 
 const CNB_DAILY_URL = 'https://www.cnb.cz/en/financial-markets/foreign-exchange-market/central-bank-exchange-rate-fixing/central-bank-exchange-rate-fixing/daily.txt';
@@ -27,9 +28,10 @@ export const fetchExchangeRates = async (): Promise<Record<string, ExchangeRate>
             acc[code] = {
                 country,
                 currency,
-                amount: 1,
+                amount,
                 code,
-                rate: rate / amount,
+                rate, // Original rate
+                normalizedRate: rate / amount, // Rate per 1 unit
             };
             return acc;
         }, {});
