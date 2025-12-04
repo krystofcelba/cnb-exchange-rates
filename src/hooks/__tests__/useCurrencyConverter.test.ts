@@ -30,15 +30,39 @@ describe('useCurrencyConverter', () => {
         expect(result.current.targetAmount).toBe(2); // 40 / 20 = 2
     });
 
-    it('should return null targetAmount when czkAmount is invalid', () => {
+    it('should not update czkAmount when input is invalid', () => {
         const { result } = renderHook(() => useCurrencyConverter(mockCurrency));
 
         act(() => {
             result.current.setCzkAmount('invalid');
         });
 
-        expect(result.current.czkAmount).toBe('invalid');
+        expect(result.current.czkAmount).toBe('');
         expect(result.current.targetAmount).toBeNull();
+    });
+
+    it('should handle input with comma as decimal separator', () => {
+        const { result } = renderHook(() => useCurrencyConverter(mockCurrency));
+
+        act(() => {
+            result.current.setCzkAmount('40,5');
+        });
+
+        expect(result.current.czkAmount).toBe('40,5');
+        // 40.5 / 20 = 2.025
+        expect(result.current.targetAmount).toBeCloseTo(2.025);
+    });
+
+    it('should handle input with spaces', () => {
+        const { result } = renderHook(() => useCurrencyConverter(mockCurrency));
+
+        act(() => {
+            result.current.setCzkAmount('1 000');
+        });
+
+        expect(result.current.czkAmount).toBe('1 000');
+        // 1000 / 20 = 50
+        expect(result.current.targetAmount).toBe(50);
     });
 
     it('should handle different normalized rates', () => {
