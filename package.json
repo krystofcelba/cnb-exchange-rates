@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "typecheck": "tsc --noEmit",
     "verify-cnb": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/verify-cnb.ts"
   },
   "dependencies": {
