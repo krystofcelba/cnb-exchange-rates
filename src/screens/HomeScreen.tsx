@@ -14,19 +14,26 @@ const Container = styled.View`
 `;
 
 export const HomeScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { data: rates, isLoading, error } = useExchangeRates();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const { data: rates, isLoading, error, refetch, isRefetching } = useExchangeRates();
 
-  const handlePress = useCallback(
-    (item: ExchangeRate) => {
-      navigation.navigate('Converter', { currency: item });
-    },
-    [navigation],
-  );
+    const handlePress = useCallback(
+        (item: ExchangeRate) => {
+            navigation.navigate('Converter', { currency: item });
+        },
+        [navigation],
+    );
 
-  return (
-    <Container>
-      <CurrencyList rates={rates} onItemPress={handlePress} isLoading={isLoading} error={error} />
-    </Container>
-  );
+    return (
+        <Container>
+            <CurrencyList
+                rates={rates}
+                onItemPress={handlePress}
+                isLoading={isLoading}
+                error={error}
+                onRefresh={refetch}
+                refreshing={isRefetching}
+            />
+        </Container>
+    );
 };
