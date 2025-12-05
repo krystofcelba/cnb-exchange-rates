@@ -49,6 +49,11 @@ Iceland|krona|100|ISK|16.211
         const errorMessage = 'Network Error';
         mockedAxios.get.mockRejectedValue(new Error(errorMessage));
 
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
         await expect(fetchExchangeRates()).rejects.toThrow(errorMessage);
+
+        expect(consoleSpy).toHaveBeenCalledWith('Error fetching CNB rates:', expect.any(Error));
+        consoleSpy.mockRestore();
     });
 });
