@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { FlatList, ActivityIndicator, StyleProp, ViewStyle } from 'react-native';
+import { FlatList, ActivityIndicator, StyleProp, ViewStyle, RefreshControl } from 'react-native';
 import styled from 'styled-components/native';
 import { useTheme } from 'styled-components/native';
 import { ExchangeRate } from '../api/cnb';
@@ -24,6 +24,8 @@ interface CurrencyListProps {
   isLoading?: boolean;
   error?: Error | null;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 export const CurrencyList: React.FC<CurrencyListProps> = ({
@@ -32,6 +34,8 @@ export const CurrencyList: React.FC<CurrencyListProps> = ({
   isLoading,
   error,
   contentContainerStyle,
+  onRefresh,
+  refreshing,
 }) => {
   const theme = useTheme();
   const ratesList = useMemo(() => (rates ? Object.values(rates) : []), [rates]);
@@ -41,29 +45,47 @@ export const CurrencyList: React.FC<CurrencyListProps> = ({
     [onItemPress],
   );
 
-  if (isLoading) {
-    return (
-      <Centered>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </Centered>
-    );
-  }
+  const ListEmptyComponent = useMemo(() => {
+    if (isLoading && !refreshing) {
+      return (
+        <Centered>
+          <ActivityIndicator
+            testID="activity-indicator"
+            size="large"
+            color={theme.colors.primary}
+          />
+        </Centered>
+      );
+    }
+    if (error) {
+      return (
+        <Centered>
+          <ErrorText>Error loading rates</ErrorText>
+        </Centered>
+      );
+    }
+    return null;
+  }, [isLoading, refreshing, error, theme.colors.primary]);
 
-  if (error) {
-    return (
-      <Centered>
-        <ErrorText>Error loading rates</ErrorText>
-      </Centered>
-    );
-  }
+  const listContentContainerStyle = useMemo(
+    () => [
+      { padding: theme.spacing.m, flexGrow: 1 },
+      contentContainerStyle,
+      (isLoading || error) && { justifyContent: 'center' as const },
+    ],
+    [theme.spacing.m, contentContainerStyle, isLoading, error],
+  );
 
   return (
     <FlatList
+      testID="flat-list"
       data={ratesList}
       renderItem={renderItem}
       keyExtractor={(item) => item.code}
-      contentContainerStyle={contentContainerStyle || { padding: theme.spacing.m }}
+      contentContainerStyle={listContentContainerStyle}
       contentInsetAdjustmentBehavior="automatic"
+      refreshControl={<RefreshControl refreshing={refreshing || false} onRefresh={onRefresh} />}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };

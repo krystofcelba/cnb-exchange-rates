@@ -15,7 +15,7 @@ const Container = styled.View`
 
 export const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { data: rates, isLoading, error } = useExchangeRates();
+  const { data: rates, isLoading, error, refetch, isRefetching } = useExchangeRates();
 
   const handlePress = useCallback(
     (item: ExchangeRate) => {
@@ -26,7 +26,14 @@ export const HomeScreen = () => {
 
   return (
     <Container>
-      <CurrencyList rates={rates} onItemPress={handlePress} isLoading={isLoading} error={error} />
+      <CurrencyList
+        rates={rates}
+        onItemPress={handlePress}
+        isLoading={isLoading}
+        error={error}
+        onRefresh={refetch}
+        refreshing={isRefetching}
+      />
     </Container>
   );
 };
