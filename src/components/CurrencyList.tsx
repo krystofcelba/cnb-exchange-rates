@@ -19,53 +19,51 @@ const ErrorText = styled.Text`
 `;
 
 interface CurrencyListProps {
-    rates: Record<string, ExchangeRate> | undefined;
-    onItemPress: (item: ExchangeRate) => void;
-    isLoading?: boolean;
-    error?: Error | null;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+  rates: Record<string, ExchangeRate> | undefined;
+  onItemPress: (item: ExchangeRate) => void;
+  isLoading?: boolean;
+  error?: Error | null;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 export const CurrencyList: React.FC<CurrencyListProps> = ({
-    rates,
-    onItemPress,
-    isLoading,
-    error,
-    contentContainerStyle,
+  rates,
+  onItemPress,
+  isLoading,
+  error,
+  contentContainerStyle,
 }) => {
-    const theme = useTheme();
-    const ratesList = useMemo(() => (rates ? Object.values(rates) : []), [rates]);
+  const theme = useTheme();
+  const ratesList = useMemo(() => (rates ? Object.values(rates) : []), [rates]);
 
-    const renderItem = useCallback(
-        ({ item }: { item: ExchangeRate }) => (
-            <CurrencyListItem item={item} onPress={onItemPress} />
-        ),
-        [onItemPress]
-    );
+  const renderItem = useCallback(
+    ({ item }: { item: ExchangeRate }) => <CurrencyListItem item={item} onPress={onItemPress} />,
+    [onItemPress],
+  );
 
-    if (isLoading) {
-        return (
-            <Centered>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </Centered>
-        );
-    }
-
-    if (error) {
-        return (
-            <Centered>
-                <ErrorText>Error loading rates</ErrorText>
-            </Centered>
-        );
-    }
-
+  if (isLoading) {
     return (
-        <FlatList
-            data={ratesList}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.code}
-            contentContainerStyle={contentContainerStyle || { padding: theme.spacing.m }}
-            contentInsetAdjustmentBehavior="automatic"
-        />
+      <Centered>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </Centered>
     );
+  }
+
+  if (error) {
+    return (
+      <Centered>
+        <ErrorText>Error loading rates</ErrorText>
+      </Centered>
+    );
+  }
+
+  return (
+    <FlatList
+      data={ratesList}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.code}
+      contentContainerStyle={contentContainerStyle || { padding: theme.spacing.m }}
+      contentInsetAdjustmentBehavior="automatic"
+    />
+  );
 };
