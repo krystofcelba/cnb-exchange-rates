@@ -3,7 +3,6 @@ import { TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import { ExchangeRate } from '../api/cnb';
 
-
 const ItemContainer = styled.View`
   padding-vertical: ${({ theme }) => theme.spacing.s}px;
   border-bottom-width: 1px;
@@ -43,10 +42,14 @@ export const CurrencyListItem = memo(({ item, onPress }: CurrencyListItemProps) 
     <TouchableOpacity onPress={() => onPress(item)}>
       <ItemContainer>
         <Row>
-          <CurrencyCode>{item.amount} {item.code}</CurrencyCode>
+          <CurrencyCode>
+            {item.amount} {item.code}
+          </CurrencyCode>
           <Rate>{item.rate.toFixed(3)} CZK</Rate>
         </Row>
-        <Country>{item.country} - {item.currency}</Country>
+        <Country>
+          {item.country} - {item.currency}
+        </Country>
       </ItemContainer>
     </TouchableOpacity>
   );

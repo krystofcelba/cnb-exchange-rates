@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  TouchableWithoutFeedback,
-  Keyboard,
-  Modal,
-  FlatList,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { TouchableWithoutFeedback, Keyboard, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styled, { useTheme } from 'styled-components/native';
 import { RouteProp, useRoute } from '@react-navigation/native';
@@ -16,7 +8,6 @@ import { useCurrencyConverter } from '../hooks/useCurrencyConverter';
 import { useExchangeRates } from '../hooks/useExchangeRates';
 import { CurrencyList } from '../components/CurrencyList';
 import { ExchangeRate } from '../api/cnb';
-
 
 const Container = styled.View`
   flex: 1;
@@ -113,12 +104,11 @@ const RateText = styled.Text`
   font-weight: 500;
 `;
 
-
 const PickerTrigger = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   margin-top: ${({ theme }) => theme.spacing.s}px;
-  background-color: #F2F2F7;
+  background-color: #f2f2f7;
   padding-vertical: ${({ theme }) => theme.spacing.s}px;
   padding-horizontal: ${({ theme }) => theme.spacing.m}px;
   border-radius: 20px;
@@ -162,10 +152,23 @@ const HeaderTitle = styled.Text`
   color: ${({ theme }) => theme.colors.text};
 `;
 
+const StyledKeyboardAvoidingView = styled.KeyboardAvoidingView`
+  flex: 1;
+`;
+
+const LastSection = styled(Section)`
+  margin-bottom: 0;
+`;
+
+const StyledSafeAreaView = styled(SafeAreaView)`
+  flex: 1;
+`;
 
 export const ConverterScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'Converter'>>();
-  const [selectedCurrency, setSelectedCurrency] = React.useState<ExchangeRate>(route.params.currency);
+  const [selectedCurrency, setSelectedCurrency] = React.useState<ExchangeRate>(
+    route.params.currency,
+  );
   const [modalVisible, setModalVisible] = React.useState(false);
   const { data: rates } = useExchangeRates();
   const theme = useTheme();
@@ -180,10 +183,7 @@ export const ConverterScreen = () => {
   return (
     <Container>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
+        <StyledKeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollContent>
             <ConversionCard>
               <Section>
@@ -203,18 +203,19 @@ export const ConverterScreen = () => {
 
               <RatePill>
                 <RateText>
-                  Current Rate: {selectedCurrency.amount} {selectedCurrency.code} = {selectedCurrency.rate.toFixed(3)} CZK
+                  Current Rate: {selectedCurrency.amount} {selectedCurrency.code} ={' '}
+                  {selectedCurrency.rate.toFixed(3)} CZK
                 </RateText>
               </RatePill>
 
-              <Section style={{ marginBottom: 0 }}>
+              <LastSection>
                 <Label>You get</Label>
                 <ResultAmount numberOfLines={1} adjustsFontSizeToFit>
                   {targetAmount !== null
                     ? targetAmount.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
                     : '0.00'}
                 </ResultAmount>
                 <PickerTrigger onPress={() => setModalVisible(true)}>
@@ -222,7 +223,7 @@ export const ConverterScreen = () => {
                   <Chevron>▼</Chevron>
                 </PickerTrigger>
                 <ResultCurrencyName>{selectedCurrency.currency}</ResultCurrencyName>
-              </Section>
+              </LastSection>
             </ConversionCard>
           </ScrollContent>
 
@@ -233,7 +234,7 @@ export const ConverterScreen = () => {
             onRequestClose={() => setModalVisible(false)}
           >
             <ModalContainer>
-              <SafeAreaView style={{ flex: 1 }}>
+              <StyledSafeAreaView>
                 <ModalHeader>
                   <HeaderTitle>Select Currency</HeaderTitle>
                   <CloseButton onPress={() => setModalVisible(false)}>
@@ -245,10 +246,10 @@ export const ConverterScreen = () => {
                   onItemPress={handleSelectCurrency}
                   contentContainerStyle={{ padding: theme.spacing.m }}
                 />
-              </SafeAreaView>
+              </StyledSafeAreaView>
             </ModalContainer>
           </Modal>
-        </KeyboardAvoidingView>
+        </StyledKeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </Container>
   );

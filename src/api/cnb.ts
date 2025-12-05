@@ -1,42 +1,43 @@
 import axios from 'axios';
 
 export interface ExchangeRate {
-    country: string;
-    currency: string;
-    amount: number;
-    code: string;
-    rate: number;
-    normalizedRate: number;
+  country: string;
+  currency: string;
+  amount: number;
+  code: string;
+  rate: number;
+  normalizedRate: number;
 }
 
-const CNB_DAILY_URL = 'https://www.cnb.cz/en/financial-markets/foreign-exchange-market/central-bank-exchange-rate-fixing/central-bank-exchange-rate-fixing/daily.txt';
+const CNB_DAILY_URL =
+  'https://www.cnb.cz/en/financial-markets/foreign-exchange-market/central-bank-exchange-rate-fixing/central-bank-exchange-rate-fixing/daily.txt';
 
 export const fetchExchangeRates = async (): Promise<Record<string, ExchangeRate>> => {
-    try {
-        const response = await axios.get(CNB_DAILY_URL);
-        const data = response.data;
+  try {
+    const response = await axios.get(CNB_DAILY_URL);
+    const data = response.data;
 
-        const lines = data.trim().split('\n');
-        // Skip the first two lines (date and header)
-        const rateLines = lines.slice(2);
+    const lines = data.trim().split('\n');
+    // Skip the first two lines (date and header)
+    const rateLines = lines.slice(2);
 
-        return rateLines.reduce((acc: Record<string, ExchangeRate>, line: string) => {
-            const [country, currency, amountStr, code, rateStr] = line.split('|');
-            const amount = parseFloat(amountStr);
-            const rate = parseFloat(rateStr);
+    return rateLines.reduce((acc: Record<string, ExchangeRate>, line: string) => {
+      const [country, currency, amountStr, code, rateStr] = line.split('|');
+      const amount = parseFloat(amountStr);
+      const rate = parseFloat(rateStr);
 
-            acc[code] = {
-                country,
-                currency,
-                amount,
-                code,
-                rate, // Original rate
-                normalizedRate: rate / amount, // Rate per 1 unit
-            };
-            return acc;
-        }, {});
-    } catch (error) {
-        console.error('Error fetching CNB rates:', error);
-        throw error;
-    }
+      acc[code] = {
+        country,
+        currency,
+        amount,
+        code,
+        rate, // Original rate
+        normalizedRate: rate / amount, // Rate per 1 unit
+      };
+      return acc;
+    }, {});
+  } catch (error) {
+    console.error('Error fetching CNB rates:', error);
+    throw error;
+  }
 };
