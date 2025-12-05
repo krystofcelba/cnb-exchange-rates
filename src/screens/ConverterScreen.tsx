@@ -1,14 +1,21 @@
 import React from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    TouchableWithoutFeedback,
-    Keyboard,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Modal,
+  FlatList,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import styled from 'styled-components/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import styled, { useTheme } from 'styled-components/native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useCurrencyConverter } from '../hooks/useCurrencyConverter';
+import { useExchangeRates } from '../hooks/useExchangeRates';
+import { CurrencyList } from '../components/CurrencyList';
+import { ExchangeRate } from '../api/cnb';
 
 
 const Container = styled.View`
@@ -17,7 +24,7 @@ const Container = styled.View`
 `;
 
 const ScrollContent = styled.ScrollView.attrs({
-    contentContainerStyle: { flexGrow: 1 },
+  contentContainerStyle: { flexGrow: 1 },
 })`
   padding: ${({ theme }) => theme.spacing.l}px;
 `;
@@ -107,59 +114,142 @@ const RateText = styled.Text`
 `;
 
 
+const PickerTrigger = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  margin-top: ${({ theme }) => theme.spacing.s}px;
+  background-color: #F2F2F7;
+  padding-vertical: ${({ theme }) => theme.spacing.s}px;
+  padding-horizontal: ${({ theme }) => theme.spacing.m}px;
+  border-radius: 20px;
+  align-self: flex-start;
+`;
+
+const Chevron = styled.Text`
+  font-size: ${({ theme }) => theme.typography.fontSize.md}px;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-left: ${({ theme }) => theme.spacing.xs}px;
+  font-weight: 700;
+`;
+
+const ModalContainer = styled.View`
+  flex: 1;
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+const ModalHeader = styled.View`
+  padding: ${({ theme }) => theme.spacing.m}px;
+  border-bottom-width: 1px;
+  border-bottom-color: ${({ theme }) => theme.colors.border || '#f0f0f0'};
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const CloseButton = styled.TouchableOpacity`
+  padding: ${({ theme }) => theme.spacing.s}px;
+`;
+
+const CloseButtonText = styled.Text`
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.fontSize.md}px;
+`;
+
+const HeaderTitle = styled.Text`
+  font-size: ${({ theme }) => theme.typography.fontSize.lg}px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+
 export const ConverterScreen = () => {
-    const route = useRoute<RouteProp<RootStackParamList, 'Converter'>>();
-    const { currency } = route.params;
-    const { czkAmount, setCzkAmount, targetAmount } = useCurrencyConverter(currency);
+  const route = useRoute<RouteProp<RootStackParamList, 'Converter'>>();
+  const [selectedCurrency, setSelectedCurrency] = React.useState<ExchangeRate>(route.params.currency);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const { data: rates } = useExchangeRates();
+  const theme = useTheme();
 
-    return (
-        <Container>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    style={{ flex: 1 }}
-                >
-                    <ScrollContent>
-                        <ConversionCard>
-                            <Section>
-                                <Label>You convert</Label>
-                                <InputWrapper>
-                                    <Input
-                                        value={czkAmount}
-                                        onChangeText={setCzkAmount}
-                                        keyboardType="numeric"
-                                        placeholder="0"
-                                        placeholderTextColor="#D1D5DB"
-                                        autoFocus
-                                        selectionColor={currency.code === 'USD' ? '#000' : undefined}
-                                    />
-                                    <Suffix>CZK</Suffix>
-                                </InputWrapper>
-                            </Section>
+  const { czkAmount, setCzkAmount, targetAmount } = useCurrencyConverter(selectedCurrency);
 
-                            <RatePill>
-                                <RateText>
-                                    Current Rate: {currency.amount} {currency.code} = {currency.rate.toFixed(3)} CZK
-                                </RateText>
-                            </RatePill>
+  const handleSelectCurrency = (item: ExchangeRate) => {
+    setSelectedCurrency(item);
+    setModalVisible(false);
+  };
 
-                            <Section style={{ marginBottom: 0 }}>
-                                <Label>You get</Label>
-                                <ResultAmount numberOfLines={1} adjustsFontSizeToFit>
-                                    {targetAmount !== null
-                                        ? targetAmount.toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        })
-                                        : '0.00'}
-                                </ResultAmount>
-                                <ResultCurrencyCode>{currency.code}</ResultCurrencyCode>
-                                <ResultCurrencyName>{currency.currency}</ResultCurrencyName>
-                            </Section>
-                        </ConversionCard>
-                    </ScrollContent>
-                </KeyboardAvoidingView>
-            </TouchableWithoutFeedback>
-        </Container>
-    );
+  return (
+    <Container>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          <ScrollContent>
+            <ConversionCard>
+              <Section>
+                <Label>You convert</Label>
+                <InputWrapper>
+                  <Input
+                    value={czkAmount}
+                    onChangeText={setCzkAmount}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={theme.colors.border}
+                    autoFocus
+                  />
+                  <Suffix>CZK</Suffix>
+                </InputWrapper>
+              </Section>
+
+              <RatePill>
+                <RateText>
+                  Current Rate: {selectedCurrency.amount} {selectedCurrency.code} = {selectedCurrency.rate.toFixed(3)} CZK
+                </RateText>
+              </RatePill>
+
+              <Section style={{ marginBottom: 0 }}>
+                <Label>You get</Label>
+                <ResultAmount numberOfLines={1} adjustsFontSizeToFit>
+                  {targetAmount !== null
+                    ? targetAmount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                    : '0.00'}
+                </ResultAmount>
+                <PickerTrigger onPress={() => setModalVisible(true)}>
+                  <ResultCurrencyCode>{selectedCurrency.code}</ResultCurrencyCode>
+                  <Chevron>▼</Chevron>
+                </PickerTrigger>
+                <ResultCurrencyName>{selectedCurrency.currency}</ResultCurrencyName>
+              </Section>
+            </ConversionCard>
+          </ScrollContent>
+
+          <Modal
+            animationType="slide"
+            visible={modalVisible}
+            presentationStyle="pageSheet"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <ModalContainer>
+              <SafeAreaView style={{ flex: 1 }}>
+                <ModalHeader>
+                  <HeaderTitle>Select Currency</HeaderTitle>
+                  <CloseButton onPress={() => setModalVisible(false)}>
+                    <CloseButtonText>Close</CloseButtonText>
+                  </CloseButton>
+                </ModalHeader>
+                <CurrencyList
+                  rates={rates}
+                  onItemPress={handleSelectCurrency}
+                  contentContainerStyle={{ padding: theme.spacing.m }}
+                />
+              </SafeAreaView>
+            </ModalContainer>
+          </Modal>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </Container>
+  );
 };
