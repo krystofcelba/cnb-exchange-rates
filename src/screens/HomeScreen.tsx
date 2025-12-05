@@ -5,13 +5,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import styled from 'styled-components/native';
 import { useExchangeRates } from '../hooks/useExchangeRates';
-import { theme } from '../theme/theme';
 import { ExchangeRate } from '../api/cnb';
-import { CurrencyListItem } from '../components/CurrencyListItem';
+import { CurrencyList } from '../components/CurrencyList';
 
 const Container = styled.View`
   flex: 1;
-  background-color: ${theme.colors.background};
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 const Centered = styled.View`
@@ -21,8 +20,8 @@ const Centered = styled.View`
 `;
 
 const ErrorText = styled.Text`
-  color: ${theme.colors.error};
-  font-size: ${theme.textVariants.subhead.fontSize}px;
+  color: ${({ theme }) => theme.colors.error};
+  font-size: ${({ theme }) => theme.textVariants.subhead.fontSize}px;
 `;
 
 export const HomeScreen = () => {
@@ -33,36 +32,15 @@ export const HomeScreen = () => {
         navigation.navigate('Converter', { currency: item });
     }, [navigation]);
 
-    const renderItem = useCallback(({ item }: { item: ExchangeRate }) => (
-        <CurrencyListItem item={item} onPress={handlePress} />
-    ), [handlePress]);
 
-    if (isLoading) {
-        return (
-            <Centered>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </Centered>
-        );
-    }
-
-    if (error) {
-        return (
-            <Centered>
-                <ErrorText>Error loading rates</ErrorText>
-            </Centered>
-        );
-    }
-
-    const ratesList = rates ? Object.values(rates) : [];
 
     return (
         <Container>
-            <FlatList
-                data={ratesList}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.code}
-                contentContainerStyle={{ padding: theme.spacing.m }}
-                contentInsetAdjustmentBehavior="automatic"
+            <CurrencyList
+                rates={rates}
+                onItemPress={handlePress}
+                isLoading={isLoading}
+                error={error}
             />
         </Container>
     );
